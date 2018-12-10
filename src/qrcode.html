@@ -1,0 +1,218 @@
+<html lang="ZH-CN">
+<head>
+  <meta charset="utf-8">
+  <title>Web QrCode Test</title>
+<style>
+	
+#finger{
+	width:500px;
+	height:500px;
+	position:absolute;
+	top:50%;
+	left:50%;
+	margin:-250px 0 0 -250px;
+	text-align: center;
+	}
+#finger_box{
+	width:100%;
+	height:100%;
+	position:relative;
+	}
+#line{
+	width:100%;
+	height:30px;
+	position:absolute;
+	top:50%;
+	left:50%;
+	margin:-6px 0 0 -50%;
+	-webkit-animation: line 1.4s linear;
+	animation: line 1.4s linear infinite;}
+/* #info{
+	width:100%;
+	height:30px;
+	line-height:30px;
+	position:absolute;top:-50px;
+	left:50%;margin-left:-50%;
+	color:#fff;font-size:1.2em;
+	} */
+@keyframes line{ 
+	0% {transform: translateY(-90px);} 
+	50% {transform: translateY(90px);} 
+	100% {transform: translateY(-90px);} 
+	}
+@-webkit-keyframes line{ 
+	0% {-webkit-transform: translateY(-90px);} 
+	50% {-webkit-transform: translateY(90px);} 
+	100% {-webkit-transform: translateY(-90px);}}
+img {
+	border: 0 none; 
+	max-width: 100%;
+	height: auto;
+	width: auto;
+	-ms-interpolation-mode: bicubic;
+	vertical-align: middle;
+	}
+
+</style>
+<script type="text/javascript" src="grid.js"></script>
+<script type="text/javascript" src="version.js"></script>
+<script type="text/javascript" src="detector.js"></script>
+<script type="text/javascript" src="formatinf.js"></script>
+<script type="text/javascript" src="errorlevel.js"></script>
+<script type="text/javascript" src="bitmat.js"></script>
+<script type="text/javascript" src="datablock.js"></script>
+<script type="text/javascript" src="bmparser.js"></script>
+<script type="text/javascript" src="datamask.js"></script>
+<script type="text/javascript" src="rsdecoder.js"></script>
+<script type="text/javascript" src="gf256poly.js"></script>
+<script type="text/javascript" src="gf256.js"></script>
+<script type="text/javascript" src="decoder.js"></script>
+<script type="text/javascript" src="qrcode.js"></script>
+<script type="text/javascript" src="findpat.js"></script>
+<script type="text/javascript" src="alignpat.js"></script>
+<script type="text/javascript" src="databr.js"></script>
+</head>
+<body>
+  <div class="booth">
+		<div id="finger">
+				<div id="finger_box">
+					<img id="zhiwen" src="images/zhiwen.png" alt="">
+					<img id="line" src="images/line.png" alt="">
+					<!-- <p id="info"></p> -->
+				</div>
+			</div>
+    <video id="video" style="width: 100%;height: 100%;"></video>
+    <canvas id='canvas' width='400' height='400' style="display:none"></canvas>
+  </div>
+
+<script>
+
+	//初始化媒体对象
+	var c = 0;
+
+	var video = document.getElementById('video'),
+		canvas = document.getElementById('canvas'),
+		vendorUrl = window.URL || window.webkitURL;
+
+	var mediaOpts = {
+		audio: false,
+		video: true,
+	}
+	if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
+		console.log("enumerateDevices() not supported.");
+	}
+	//枚举可用的多媒体输入输出设备的信息
+	//Internet Explorer	Opera	Safari (WebKit)暂不支持
+	navigator.mediaDevices.enumerateDevices()
+		.then(function (devices) {
+			var videoSelect = []
+			devices.forEach(function (device) {
+				//删选摄像设备
+				if (device.kind === 'videoinput') { videoSelect.push(device); }
+			});
+			//默认第0个摄像设备，TODO可选前后摄像头
+			mediaOpts.video = {
+				deviceId: { exact: videoSelect[0].deviceId }
+			}
+			var constraints = { audio: false, video: { facingMode: "environment" } };
+			navigator.mediaDevices.getUserMedia(mediaOpts)
+				.then(function (mediaStream) {
+					console.log(mediaStream);
+					video.src = vendorUrl.createObjectURL(mediaStream);
+					video.onloadedmetadata = function (e) {
+						video.play();
+					};
+				})
+				.catch(function (err) { console.log(err.name + ": " + err.message); });
+		})
+		.catch(function (err) {
+			console.log(err.name + ": " + err.message);
+		});
+
+
+	var front = false;
+
+
+	//启动定时器
+	setTimeout("actionP(null)", "1000");
+
+	//定时器
+	function actionP(data) {
+		if (data == null) {
+			Screenshot()
+
+		} else {
+			if (data != null & data != "error decoding QR Code") {//识别出数据
+				if (data.indexOf("http") != -1) {
+					window.location.href = data;
+				} else alert(data);
+
+			} else {//没有数据一直循环
+				// c++;
+				// if (c < 10) {//没有数据循环十次
+					setTimeout("actionP(null)", "1000");
+				// }
+
+			}
+		}
+
+	}
+
+
+	function Screenshot() {//截取图像
+		canvas.getContext('2d').drawImage(video, 0, 0, 400, 400);
+		var imgData = canvas.toDataURL("image/png");
+		load(imgData);
+		//  img.src=imgData;
+
+	}
+	////////////////////////////////////////识别二维码////////////////////////////////////////////
+
+	function dragenter(e) {
+		e.stopPropagation();
+		e.preventDefault();
+	}
+
+	function dragover(e) {
+		e.stopPropagation();
+		e.preventDefault();
+	}
+	function drop(e) {
+		e.stopPropagation();
+		e.preventDefault();
+
+		var dt = e.dataTransfer;
+		var files = dt.files;
+
+
+	}
+
+
+	function load(name) {
+		// initCanvas(640,480);
+		//识别二维码并回调方法
+		qrcode.callback = actionP;
+		qrcode.decode(name);
+	}
+
+	// function initCanvas(ww,hh)//创建画板
+	// 	{
+	// 	gCanvas = document.getElementById("qr-canvas");
+	// 	gCanvas.addEventListener("dragenter", dragenter, false);  
+	// 	gCanvas.addEventListener("dragover", dragover, false);  
+	// 	gCanvas.addEventListener("drop", drop, false);
+	// 	var w = ww;
+	// 	var h = hh;
+	// 	gCanvas.style.width = w + "px";
+	// 	gCanvas.style.height = h + "px";
+	// 	gCanvas.width = w;
+	// 	gCanvas.height = h;
+	// 	gCtx = gCanvas.getContext("2d");
+	// 	gCtx.clearRect(0, 0, w, h);
+	// 	imageData = gCtx.getImageData( 0,0,320,240);
+	// }
+
+
+</script>
+</body>
+</html>
