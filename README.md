@@ -15,15 +15,17 @@ This is a port of ZXing qrcode scanner, http://code.google.com/p/zxing.
 
 *例：放到http-server中*
 
-安装http-server
+*安装http-server*
 
 ```npm install http-server -g ```
 
-使用
+*使用http-server*
 
 找到你的文件夹,在当前文件夹下打开命令行,输入http-server,默认启动8080端口
 
 访问：http://127.0.0.1:8080/src/qrcode.html
+
+
 
 
 
