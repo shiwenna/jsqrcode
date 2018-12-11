@@ -25,7 +25,9 @@ This is a port of ZXing qrcode scanner, http://code.google.com/p/zxing.
 
 访问：http://127.0.0.1:8080/src/qrcode.html
 
+效果图：
 
+![](src/images/demo.jpg)
 
 
 
