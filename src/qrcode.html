@@ -143,9 +143,16 @@ img {
 
 		} else {
 			if (data != null & data != "error decoding QR Code") {//识别出数据
-				if (data.indexOf("http") != -1) {
+				if (qrcode.isUrl(data)) {
 					window.location.href = data;
-				} else alert(data);
+				}
+				else {
+					//关闭alert框后不会继续扫描 TODO跳转页面
+					alert(data);
+				}
+				// if (data.indexOf("http") != -1) {
+				// 	window.location.href = data;
+				// } else alert(data);
 
 			} else {//没有数据一直循环
 				// c++;
