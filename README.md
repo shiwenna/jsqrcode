@@ -29,5 +29,7 @@ This is a port of ZXing qrcode scanner, http://code.google.com/p/zxing.
 
 ![](src/images/demo.jpg)
 
+结果：
 
+二维码若为URL则自动跳转页面，否则弹框显示二维码内容。
 
